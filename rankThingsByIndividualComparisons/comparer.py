@@ -2,10 +2,10 @@
 import random
 
   # credit to me (I MADE THIS)
-from rankThingsByIndividualComparisons.userComparable import Item
+from userComparable import Item
 
 # https://github.com/PunkChameleon/ford-johnson-merge-insertion-sort/blob/master/fjmi.py
-from rankThingsByIndividualComparisons.fjmi import merge_insertion_sort
+from fjmi import merge_insertion_sort
 
 
 class Comparer():
@@ -25,7 +25,7 @@ class Comparer():
             things = list(things)
         
         if randomize:
-            random.shuffle(things, inplace=False)
+            random.shuffle(things)
 
         self._collection = things
         self._wrapped = [Item(thing) for thing in things]
@@ -54,14 +54,20 @@ class Comparer():
         # utilize someone else's sorting algorithm,
         # but sorting based on wrapped Items()
         # so that it will use the overriden > operator to ask for user input.
-        sorted_zipped = merge_insertion_sort(zip(self._wrapped, self.collection))
-        self._wrapped[:], self.collection[:] = zip(*sorted_zipped)
+        sorted_zipped = merge_insertion_sort(list(zip(self._wrapped, self._collection)))
+        self._wrapped[:], self._collection[:] = zip(*sorted_zipped)
 
         return self._collection
     
     def _swap(self, index1, index2):
         self._collection[index1], self._collection[index2] = self._collection[index2], self._collection[index1]
-        self.wrapped[index1], self.wrapped[index2] = self.wrapped[index2], self.wrapped[index1]
+        self._wrapped[index1], self._wrapped[index2] = self._wrapped[index2], self._wrapped[index1]
+
+    def __repr__(self):
+        return repr(self._collection)
+
+    def __str__(self):
+        return str(self._collection)
 
 
 if __name__ == '__main__':
