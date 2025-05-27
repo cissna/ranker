@@ -68,6 +68,15 @@ class Item():
         self.caching = caching
         if caching and is_mutable(item):  # might not catch everything...
             raise ValueError("Item should NOT be mutable if caching is enabled.")
+        
+        self._index = None
+
+    def setIndex(self, i):
+        """Sets the _index field to remember its place in a container"""
+        self._index = i
+
+    def getIndex(self):
+        return self._index
 
     def __lt__(self, other):
         if not isinstance(other, Item):
