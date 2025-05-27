@@ -205,5 +205,5 @@ if __name__ == '__main__':
     print(ch == pork)
     print(ch > pork)
 
-    list_of_lists = [_ for _ in range(0)]
-    newItem = Item(list_of_lists)  # expect an error
+    mutable_input = [_ for _ in range(0)]  # size 0 failed before, now it works
+    newItem = Item(mutable_input)  # expect an error

@@ -66,4 +66,15 @@ class Comparer():
     def _swap(self, index1, index2):
         self._collection[index1], self._collection[index2] = self._collection[index2], self._collection[index1]
         self.wrapped[index1], self.wrapped[index2] = self.wrapped[index2], self.wrapped[index1]
-        
+
+
+if __name__ == '__main__':
+    print('Testing comparer.py\'s Comparer() class:')
+    lst = ['thai', 'sushi', 'pizza', 'mexican', 'calamari']
+    c = Comparer(lst, True)
+    c.minimal_compare()
+    print(c)
+
+    print('\nfinished merge-insortion compare, onto neighbor compare:\n')
+    c.neighbor_compare()
+    print(c)
