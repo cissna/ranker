@@ -1,7 +1,11 @@
 from copy import deepcopy
 import random
 
-from userComparable import Item
+  # credit to me (I MADE THIS)
+from rankThingsByIndividualComparisons.userComparable import Item
+
+# https://github.com/PunkChameleon/ford-johnson-merge-insertion-sort/blob/master/fjmi.py
+from rankThingsByIndividualComparisons.fjmi import merge_insertion_sort
 
 
 class Comparer():
@@ -55,7 +59,7 @@ class Comparer():
         second = cpy.pop()
         
         while cpy:
-            pass
+            merge_insertion_sort()  # not done yet
 
         return self._collection
     
