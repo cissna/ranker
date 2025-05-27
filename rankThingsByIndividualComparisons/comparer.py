@@ -54,10 +54,20 @@ class Comparer():
         # utilize someone else's sorting algorithm,
         # but sorting based on wrapped Items()
         # so that it will use the overriden > operator to ask for user input.
-        sorted_zipped = merge_insertion_sort(list(zip(self._wrapped, self._collection)))
-        self._wrapped[:], self._collection[:] = zip(*sorted_zipped)
+        self._rememberWrappedIndices()
+        self._wrapped[:] = merge_insertion_sort(self._wrapped)
+        
+        self._updateCollectionBasedOnWrappedIndicesPermutation()  # updates order of self._collection, based on the sort of _wrapped
 
         return self._collection
+    
+    def _rememberWrappedIndices(self):
+        for i in range(len(self._wrapped)):
+            self._wrapped[i].setIndex(i)
+
+    def _updateCollectionBasedOnWrappedIndicesPermutation(self):
+        old_indices = [w.getIndex() for w in self._wrapped]
+        self._collection[:] = [self._collection[i] for i in old_indices]
     
     def _swap(self, index1, index2):
         self._collection[index1], self._collection[index2] = self._collection[index2], self._collection[index1]
@@ -73,7 +83,7 @@ class Comparer():
 if __name__ == '__main__':
     print('Testing comparer.py\'s Comparer() class:')
     lst = ['thai', 'sushi', 'pizza', 'mexican', 'calamari']
-    c = Comparer(lst, True)
+    c = Comparer(lst)
     c.minimal_compare()
     print(c)
 
