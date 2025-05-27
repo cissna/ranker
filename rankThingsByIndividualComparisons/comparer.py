@@ -2,10 +2,10 @@
 import random
 
   # credit to me (I MADE THIS)
-from userComparable import Item
+from .userComparable import Item
 
 # https://github.com/PunkChameleon/ford-johnson-merge-insertion-sort/blob/master/fjmi.py
-from fjmi import merge_insertion_sort
+from .fjmi import merge_insertion_sort
 
 
 class Comparer():
@@ -31,7 +31,7 @@ class Comparer():
         self._wrapped = [Item(thing) for thing in things]
 
     def neighbor_compare(self):
-        """
+        """ // TODO: make this into something actually useful. and fix minimal_compare docstring
         compares each element to the one succeeding it, swapping if necessary
         swaps so that the best item will be first
         not the best comparer, but good for fine tuning when most wouldn't be off by much more than 1.

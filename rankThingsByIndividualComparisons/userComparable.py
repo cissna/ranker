@@ -1,4 +1,4 @@
-from helpers import is_mutable, getch ,CONFIRMATIONS, TO_STRIP
+from .helpers import is_mutable, getch ,CONFIRMATIONS, TO_STRIP
 
 
 # important thing:

@@ -164,8 +164,8 @@ def create_s(sorted_split_array, straggler, print_comparision_estimation=False):
 # ---------------------------------------------------------------------------
 
 def merge_insertion_sort(A):
-    print("Starting Array:")
-    print(A)
+    # print("Starting Array:")
+    # print(A)
 
     # Handle odd length by detaching the final element (straggler)
     has_straggler = len(A) % 2 != 0
@@ -184,6 +184,6 @@ def merge_insertion_sort(A):
     # Phase 4 – produce descending order as requested
     S.reverse()
 
-    print("Sorted Array (descending):")
-    print(S)
+    # print("Sorted Array (descending):")
+    # print(S)
     return S
