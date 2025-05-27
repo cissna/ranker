@@ -1,221 +1,189 @@
 """
 imported from
 https://github.com/PunkChameleon/ford-johnson-merge-insertion-sort/blob/master/fjmi.py
-ChatGPT recommended this implementation of the merge-insertion sort, which I need to minimize comparisons in comparer.py
-"""
 
+MODIFIED:
+1. All element‑vs‑element comparisons now use the **opposite** operator
+   ("<" where the original used ">"/">=").
+2. Final list is returned in **descending** order by a single in‑place
+   `reverse()`.
+3. **Duplicate‑element bug fixed** — the `create_s` routine had a 0‑based /
+   1‑based indexing mix‑up that re‑inserted one `pend` element twice.  The
+   iterator now starts at 2 (because `pend[0]` is already inserted) and the
+   loop guards ensure we never address `pend[-1]` or run one step past the
+   end.  Edge‑case of input length ≤ 2 is also handled.
+"""
 
 import bisect
 
+# ---------------------------------------------------------------------------
+#  Helpers
+# ---------------------------------------------------------------------------
+
 # Split into pairs
-def create_pairs (a):
+def create_pairs(a):
+    split_array = []
+    temp_array = []
 
-  # Create local stores for use
-  split_array = [];
-  temp_array = [];
+    for _, value in enumerate(a, start=1):
+        if len(temp_array) == 1:
+            temp_array.append(value)
+            split_array.append(temp_array)
+            temp_array = []
+        elif len(split_array) * 2 == len(a) - 1:
+            split_array.append(value)
+        else:
+            temp_array.append(value)
+    return split_array
 
-  for num, value in enumerate(a, start=1):
-    temp_length = len(temp_array)
-    if temp_length == 1:
-      temp_array.append(value)
-      split_array.append(temp_array)
-      temp_array = []
-    elif len(split_array) * 2 == len(a) - 1:
-      split_array.append(value)
-    elif temp_length == 0:
-      temp_array.append(value)
 
-    #count += 1
+# Sort each pair into ascending order (so pair[1] is the larger element)
+def sort_each_pair(split_array):
+    for pair in split_array:
+        if len(pair) == 2 and pair[1] < pair[0]:
+            pair[0], pair[1] = pair[1], pair[0]
+    return split_array
 
-  return split_array
 
-# Sort all the pairs
-def sort_each_pair (split_array):
+# ---------------------------------------------------------------------------
+#  Recursive pair‑list insertion‑sort (by the **larger** value in each pair)
+# ---------------------------------------------------------------------------
 
-  for pair in split_array:
-    # compare values in each pair and sort
-    if len(pair) != 1 and (pair[0] > pair[1]):
-      temp = pair[0]
-      pair[0] = pair[1]
-      pair[1] = temp;
-
-  return split_array
-
-# build utility functions for recursive insertion sort by highest value in pair
 def insert(element, A, n):
-  if n < 0:
-    A[0] = element
-  elif element[1] >= A[n][1]:
-    if n == len(A)-1:
-      A.append(element)
+    if n < 0:
+        A[0] = element
+    elif not (element[1] < A[n][1]):          # element[1] >= A[n][1]
+        if n == len(A) - 1:
+            A.append(element)
+        else:
+            A[n + 1] = element
     else:
-      A[n+1] = element
-  else:
-    if n == len(A)-1:
-      A.append(A[n])
-    else:
-      A[n+1] = A[n]
-      insert(element, A, n-1)
+        if n == len(A) - 1:
+            A.append(A[n])
+        else:
+            A[n + 1] = A[n]
+            insert(element, A, n - 1)
 
-# entry function to recusrively sort pairs by their higher value
+
 def insertion_sort_pairs(A, n):
-  if n < 1:
-    return A
-  else:
-    insertion_sort_pairs(A, n-1)
-    insert(A[n], A, n-1)
+    if n < 1:
+        return A
+    insertion_sort_pairs(A, n - 1)
+    insert(A[n], A, n - 1)
 
-# Recursive function to generate nth Jacobsthal number
+
+# Jacobsthal utilities
 def jacobsthal(n):
-    # first base case
-    if (n == 0):
+    if n == 0:
         return 0
-
-    # second base case
-    if (n == 1):
+    if n == 1:
         return 1
-
-    # recurse!
     return jacobsthal(n - 1) + 2 * jacobsthal(n - 2)
 
-# Built a sequence of valid jacobsthal numbers, given an array length
-def build_jacob_insertion_sequence (array):
-    # Store some variables, set some up for returning
+
+def build_jacob_insertion_sequence(array):
     array_len = len(array)
-    end_sequence = []
-    jacob_index = 3 # The first one that matters
-
-    # Loop through and create the sequence
-    while jacobsthal(jacob_index) < array_len -1 :
-        end_sequence.append(jacobsthal(jacob_index))
-        jacob_index += 1
-
-    # Return it for user
-    return end_sequence
-
-# Recursively sort the larger set of elements into sorted set
-def sort_by_larger_value(sorted_split_array):
-
-  # Grab the length
-  length = len(sorted_split_array)
-
-  ## recursively sort the pairs by largest element
-  insertion_sort_pairs(sorted_split_array, (len(sorted_split_array) -1))
+    sequence = []
+    j = 3  # first index that matters
+    while jacobsthal(j) < array_len - 1:
+        sequence.append(jacobsthal(j))
+        j += 1
+    return sequence
 
 
-# Create Sequence
-def create_s(sorted_split_array, straggler, print_comparision_estimation):
+# ---------------------------------------------------------------------------
+#  Core sequence builder (FIXED)
+# ---------------------------------------------------------------------------
 
-  # Placeholders for the key sequences
-  S = []
-  pend = []
+def create_s(sorted_split_array, straggler, print_comparision_estimation=False):
+    """Builds the main sequence *S* and inserts the pend elements following the
+    Ford–Johnson schedule.  Duplicate‑insertion bug fixed (May 2025)."""
 
-  # Comparison Counter
-  comparisions_made = 0
+    S, pend = [], []
+    comparisons_made = 0
 
-  # Split the pairs into the main sequences.
-  for pair in sorted_split_array:
-    # Add the larger elements into 'main'
-    S.append(pair[1])
-    # add smaller elements into 'pend'
-    pend.append(pair[0])
+    # Split the sorted pairs into their two working lists
+    for pair in sorted_split_array:
+        S.append(pair[1])     # larger element of the pair
+        pend.append(pair[0])  # smaller element
 
-  # Insert the first element in S -- we know it's the smallest, since it
-  # was already sorted smaller in the first pairing
-  S.insert(0, pend[0])
+    # Edge case: fewer than two pairs – nothing to pend‑insert
+    if not pend:
+        if straggler is not False:
+            S.insert(bisect.bisect(S, straggler), straggler)
+        return S
 
-  # Now, we need to build an insertion sequence, taking advantage of the
-  # Jacobsthal number set
+    # Insert the very first pend element (index 1 in the 1‑based paper spec)
+    S.insert(0, pend[0])
 
-  # Store some placeholders
-  iterator = 0 # We already added one
-  jacobindex = 3 # Start at three, since we already inserted 1 and we can skip the beginning of this sequence
-  indexSequence = [1] # Index sequence for reporting purposes (and sanity)
-  last = "default" # Not the most elegant solution, but store a string so we know when if the last sequence entry was a Jacobsthal number
+    # ---------------------------------------------------------------------
+    # Iterator starts at **2** because pend[1] is already in S.
+    # ---------------------------------------------------------------------
+    iterator = 2
+    index_sequence = {1}
+    last = None
+    jacob_sequence = build_jacob_insertion_sequence(pend)
 
-  # build the valid jacobsthal sequence, then we can fill in the rest
-  jacob_insertion_sequence = build_jacob_insertion_sequence(pend)
+    while iterator <= len(pend):
+        # Prefer the next Jacobsthal index when allowed
+        if jacob_sequence and last != "jacob":
+            idx = jacob_sequence.pop(0)
+            if idx in index_sequence:
+                continue  # should not happen but be safe
+            item = pend[idx - 1]
+            index_sequence.add(idx)
+            last = "jacob"
+        else:
+            if iterator in index_sequence:
+                iterator += 1
+                continue
+            item = pend[iterator - 1]
+            index_sequence.add(iterator)
+            last = "not‑jacob"
+            iterator += 1
 
-  # iterate through the rest of 'pend'
-  while iterator <= len(pend):
+        insertion_point = bisect.bisect(S, item, 0, len(S))
+        S.insert(insertion_point, item)
+        comparisons_made += 2
 
-      # if we have a valid jacobsthal index, let's use it!
-      if len(jacob_insertion_sequence) != 0 and last != "jacob":
-          indexSequence.append(jacob_insertion_sequence[0])
-          item = pend[jacob_insertion_sequence[0] - 1]
-          # Now pop it off
-          jacob_insertion_sequence.pop(0)
-          last = "jacob"
-      else:
-          # Else, let's fill it with what's remaining most efficently
-          # First, make sure the jacob number wasn't already used
-          if (iterator in indexSequence):
-              iterator += 1
-          item = pend[iterator - 1]
-          indexSequence.append(iterator)
-          last = "not-jacob"
-          # Increment our iterators
-          iterator += 1
-          jacobindex += 1
+    # Straggler (odd‑length input) – binary‑insert into the whole list
+    if straggler is not False:
+        insertion_point = bisect.bisect(S, straggler, 0, len(S))
+        S.insert(insertion_point, straggler)
+        comparisons_made += 2
 
-      # we now have the most optimal item to insert (with the least comparisons!).
-      # lets use bisect to get the insertion point
-      insertion_point = bisect.bisect(S, item, 0, len(S))
+    if print_comparision_estimation:
+        print("Approximate Comparisons Made:")
+        print(comparisons_made)
 
-      # then insert it into S!
-      S.insert(insertion_point, item)
+    return S
 
-      # Update comparisions counter
-      comparisions_made += 2
 
-  # If an odd numbered array was given, we took off the straggler in the beginning
-  # We now binary search insert the entire array for this one, following the algo.
-  if straggler:
-    insertion_point = bisect.bisect(S, straggler, 0, len(S))
-    S.insert(insertion_point, straggler)
-    comparisions_made += 2
+# ---------------------------------------------------------------------------
+#  Public API – merge‑insertion sort (descending)
+# ---------------------------------------------------------------------------
 
-  if print_comparision_estimation:
-      print("Approximate Comparisions Made:")
-      print(comparisions_made)
-
-  return S
-
-# # #
-# Ford-Johnson Merge-Insertion Sort
-# Implementation in Python
-#
-# Input: Provide an array of non-repeating integers that you wish to be sorted
-# Output: Sorted array
-# # #
-def merge_insertion_sort (A):
-    # Print out Given Array, for clarity
+def merge_insertion_sort(A):
     print("Starting Array:")
     print(A)
 
-    # Determine if it's odd numbered... if so, take off a straggler
-    hasStraggler = len(A) % 2 != 0
+    # Handle odd length by detaching the final element (straggler)
+    has_straggler = len(A) % 2 != 0
+    straggler = A.pop() if has_straggler else False
 
-    if hasStraggler:
-        straggler = A.pop(len(A) -1)
-    else:
-        straggler = False
-
-    # Then Split Array into Pairs
-    split_array = create_pairs(A);
-
-    # Sort each pair of elements
+    # Phase 1 – pair splitting & per‑pair ordering
+    split_array = create_pairs(A)
     sorted_split_array = sort_each_pair(split_array)
 
-    # Recursively sort the pairs by their largest element
-    sort_by_larger_value(sorted_split_array)
+    # Phase 2 – recursively sort the pairs by their larger element
+    insertion_sort_pairs(sorted_split_array, len(sorted_split_array) - 1)
 
-    # Create main and pend sequences and merge insertion sort
-    S = create_s(sorted_split_array, straggler, True)
+    # Phase 3 – build the main sequence and pend‑insert the rest
+    S = create_s(sorted_split_array, straggler, print_comparision_estimation=True)
 
-    # Print it to the user
-    print("Sorted Array:")
+    # Phase 4 – produce descending order as requested
+    S.reverse()
+
+    print("Sorted Array (descending):")
     print(S)
-
-    # Return it to the user
     return S
