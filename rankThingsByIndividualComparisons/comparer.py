@@ -1,4 +1,4 @@
-from copy import deepcopy
+# from copy import deepcopy  # might need, but not right now
 import random
 
   # credit to me (I MADE THIS)
@@ -51,15 +51,11 @@ class Comparer():
         updates list you passed into Comparer object, but also returns the list (in case you didn't pass in a list)
         """
 
-        sorted_section = {}  # type {item: float} --> {item: temp ranking}
-        cpy = deepcopy(self._collection)  # definitely a list on the outside, unless someone manually changed it (please don't)
-        wrap_cpy = deepcopy(self._wrapped)
-
-        first = cpy.pop()
-        second = cpy.pop()
-        
-        while cpy:
-            merge_insertion_sort()  # not done yet
+        # utilize someone else's sorting algorithm,
+        # but sorting based on wrapped Items()
+        # so that it will use the overriden > operator to ask for user input.
+        sorted_zipped = merge_insertion_sort(zip(self._wrapped, self.collection))
+        self._wrapped[:], self.collection[:] = zip(*sorted_zipped)
 
         return self._collection
     
