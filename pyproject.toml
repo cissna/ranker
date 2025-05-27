@@ -1,0 +1,13 @@
+# ranker/pyproject.toml
+[build-system]
+requires = ["setuptools>=61.0"]  # arbitrarily chosen by ChatGPT
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ranker"
+version = "0.1.0"
+dependencies = [
+  # none, as of yet
+]
+[project.urls]
+"Homepage" = "https://github.com/cissna/ranker"
