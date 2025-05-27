@@ -1,7 +1,7 @@
 """
 imported from
 https://github.com/PunkChameleon/ford-johnson-merge-insertion-sort/blob/master/fjmi.py
-ChatGPT recommended this implementation of the merge-insortion sort, which I need to minimize comparisons in comparer.py
+ChatGPT recommended this implementation of the merge-insertion sort, which I need to minimize comparisons in comparer.py
 """
 
 
