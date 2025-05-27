@@ -80,6 +80,13 @@ def getch():
             ch = sys.stdin.read(1)   # read exactly one character
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        
+        if ch == '\x1b':
+            print(end="\ngetching thrice to try to avoid arrow key messing everything up,"
+            "\n(hopefully only next input will count, but could be 2nd or 3rd if something is weird)\ntry again: ", flush=True)
+            getch()
+            getch()
+            return getch()
         return ch
 
 
